@@ -2,7 +2,7 @@
 import datetime
 import math
 import plotly.express as px
-from functools import reduce
+from functools import reduce 
 
 def f(seasonal_effect):
     Time_to_death = 32
@@ -57,7 +57,7 @@ def f(seasonal_effect):
                 dt = 0
             
             for l in range(0, len(_y)):
-                for j in range(0, ki):
+                for j in range(1, ki):
                     _y[l] = _y[l] + h * m[ki - 1][j] * k[ki - 1][l]
             #k[ki] = f(t + dt, _y, dt)
             k.append(f(t + dt, _y))
