@@ -65,7 +65,7 @@ def f(seasonal_effect):
         r = y.copy()
         for l in range(0, len(_y)):
             for j in range(0, len(k)):
-                r[l] = r[l] + h * k[j][l] * m[ki - 1][j]
+                r[l] = r[l] + h * k[j][l] * m[ki][j]
         return r
 
     Integrators = {
