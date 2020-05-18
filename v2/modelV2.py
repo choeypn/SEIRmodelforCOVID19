@@ -2,27 +2,44 @@
 import datetime
 import math
 import plotly.express as px
+import sys
 from functools import reduce
 
+def strType(xstr):
+        try:
+            int(xstr)
+            return 'int'
+        except:
+            try:
+                float(xstr)
+                return 'float'
+            except:
+                try:
+                    complex(xstr)
+                    return 'complex'
+                except:
+                    return 'str'
+
 def f(seasonal_effect):
+    #default values for the model
     Time_to_death = 25
     logN = math.log(7e6)
-    N = 7800000
-    I0 = 1
-    R0 = 2.5
+    #N = 7800000
+    #I0 = 1
+    #R0 = 2.5
     D_incubation = 5.0
     D_infectious = 3.0
     D_recovery_mild = 11.0
     D_recovery_severe = 21.0
     DHospitalLag = 8
     D_death = Time_to_death - D_infectious
-    CFR = 0.01
+    #CFR = 0.01
     InterventionTime = 10000
     InterventionAmt = 1 / 3
     Time = 220
     Xmax = 110000
     dt = 1
-    P_SEVERE = 0.04
+    #P_SEVERE = 0.04
     duration = 7 * 12 * 1e10
     seasonal_effect = 0
 
@@ -30,10 +47,59 @@ def f(seasonal_effect):
     steps = 320 * interpolation_steps
     dt = dt / interpolation_steps
     sample_step = interpolation_steps
+
+    # default values for variables go here
+    switcher = {
+        "N": 7800000,
+        "I0": 1,
+        "R0": 2.5,
+        "CFR": 0.01,
+        "PSEVERE": 0.04
+    }
+    #begin changing variable values to the command line argument values if supplied
+    print(sys.argv)
+    for i in range(1, len(sys.argv)):
+        #require arg to have 2 leading dashes in front
+        if (sys.argv[i][0:2] == "--"):
+            argument = sys.argv[i][2:].upper()
+            if (strType(argument) != "str"):
+                print("Argument should be a string")
+                continue
+            
+            #make sure there's more command line arguments
+            if (i+1 >= len(sys.argv)):
+                print("Need more command line arguments")
+                continue
+            
+            argumentValue = sys.argv[i+1]
+            argumentValueType = strType(argumentValue)
+            if (argumentValueType != "float" and argumentValueType != "int"):
+                print(argumentValue + ": needs to be a numeric value. ", end="")
+                print("Type received: " + argumentValueType)
+                continue
+            
+            if (argumentValueType == "float"):
+                switcher[argument] = float(argumentValue)
+            else:
+                switcher[argument] = int(argumentValue)
+            #i+=1
+
+        elif (strType(sys.argv[i]) == "str"):
+            print(sys.argv[i] + ". is not a valid argument")
+    
+    N = switcher["N"]
+    I0 = switcher["I0"]
+    R0 = switcher["R0"]
+    CFR = switcher["CFR"]
+    P_SEVERE = switcher["PSEVERE"]
+
+    for key in switcher.keys():
+        print(key + ": " + str(switcher[key]))
+    print(switcher)
   
     def addDays(days):
         # returns the date + days
-        specificDate = datetime.datetime(2020, 1, 1)
+        specificDate = datetime.datetime(2020, 1, 15)
         newDate = specificDate + datetime.timedelta(days=days)
         return newDate
 
@@ -47,7 +113,7 @@ def f(seasonal_effect):
   # f is a func of time t and state y
   # y is the initial state, t is the time, h is the timestep
   # updated y is returned.
-    def integrate(m, f, y, t, h):
+    def integrate(m, fn, y, t, h):
         k = []
         for ki in range(0, len(m)):
             _y = y.copy()
@@ -60,7 +126,7 @@ def f(seasonal_effect):
                 for j in range(0, ki):
                     _y[l] = _y[l] + h * m[ki - 1][j] * k[ki - 1][l]
             #k[ki] = f(t + dt, _y, dt)
-            k.append(f(t + dt, _y))
+            k.append(fn(t + dt, _y))
         
         r = y.copy()
         for l in range(0, len(_y)):
@@ -215,6 +281,6 @@ def getTrace(data, name):
     }
     return trace
 
-plotData = getTrace(f(0.0), "Infected, seasonal effect = 0")
+plotData = getTrace(data, "Infected, seasonal effect = 0")
 fig = px.line(x=plotData["x"], y=plotData["y"])
 fig.show()
