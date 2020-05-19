@@ -91,7 +91,7 @@ def GetR0DecayValues():
     XAxis = 0
     YAxis = 2
     
-    R0File = open("C:\\Users\\bryst\\Desktop\\School\\csci474\\Project2-CSCI474\\v3\\R0.txt", "r")
+    R0File = open("R0.txt", "r")
     line1 = R0File.readline().strip()
     line1Values = ReadDecayLine(line1)
     if (line1Values == None):
