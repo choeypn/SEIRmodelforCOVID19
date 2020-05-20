@@ -1,9 +1,15 @@
 # This is the code for the original model javascript code found at: https:#facultyweb.cs.wwu.edu/~jagodzf/covid-19/original/
+import argparse
 import datetime
 import math
 import plotly.express as px
 import sys
 from functools import reduce
+#RT is the same as R0 (R naught)
+#RT is the rate of transmission
+#If R0 is 2, then that person will give it to two other people
+#R0 ranges between 0.5 and 4        
+# If R0 < 1.2 there's not enough transmission that it doesn't spread
 
 def strType(xstr):
         try:
@@ -19,52 +25,11 @@ def strType(xstr):
                     return 'complex'
                 except:
                     return 'str'
-
-def isnum(xstr):
-    return strType(xstr) == "int" or strType(xstr) == "float"
-        
-
-# used for decaying R0 values
-def GetR0Vals():
-    arrayR0 = []
-    for i in range(0, 365):
-        arrayR0.append(0.0)
-  
-    # validate inputs
-    checkR0textBox()
-
-    # get values from textbox
-    # this needs to change to a .txt file
-    R0File = open("R0.txt", "r")
-    for line in R0File:
-        # get successive pairs of rows
-        line1 = lines[i]
-        line2 = lines[i + 1]
-
-        # calculate delta y, delta x
-        line1_x = int(line1.split(" ")[0])
-        line1_y = float(line1.split(" ")[1])
-        line2_x = int(line2.split(" ")[0])
-        line2_y = float(line2.split(" ")[1])
-        deltaX = float(line2_x - line1_x)
-        deltaY = float(line2_y - line1_y)
-
-        # calculate slope
-        slope = float(deltaY / deltaX)
-
-        # get y intercept, b
-        b = line1_y - slope * line1_x
-
-        # set value of boundary conditions (repeat calc, but O(linear))
-        arrayR0[line1_x] = line1_y
-        arrayR0[line2_x] = line2_y
-
-        # for all intermediate points between x2 and x1, calculate slope
-        # y = mx + b
-        for j in range(line1_x+1, line2_x):
-            arrayR0[j] = float(slope * j + b)
-
-    return arrayR0
+                    
+def toDate(startDate, days):
+        # return new date beginning on Jan 1st 2020 + t
+        # unsure what 't' is
+        return startDate + datetime.timedelta(days=days)
 
 def ReadDecayLine(line):
     lineValues = line.split(" ")
@@ -82,25 +47,36 @@ def ReadDecayLine(line):
         print(lineValues[1] + ": should be formatted as R0={float}")
         return None
 
-#   return (day, metric, metricValue)
+    #return (day, metric, metricValue)
     return (int(dayValues[1]), "R0", float(metricValues[1]))
-    
 
-def GetR0DecayValues():
+def GetR0DecayValues(R0FilePath):
     arrayR0 = []
     XAxis = 0
     YAxis = 2
     
-    R0File = open("R0.txt", "r")
+    R0File = open(R0FilePath, "r")
     line1 = R0File.readline().strip()
     line1Values = ReadDecayLine(line1)
     if (line1Values == None):
         return None
+    
+    if (line1Values[XAxis] != 0):
+        print("The first line within the given decay file must have day=0")
+        return None
 
     for line2 in R0File:
         line2 = line2.strip()
+        # skip empty lines
+        if (line2 == ""):
+            continue
+
         line2Values = ReadDecayLine(line2)
         if (line2Values == None):
+            return None
+        
+        if (line2Values[XAxis] < line1Values[XAxis]):
+            print("Cannot go down in days in the given decay file.")
             return None
         
         deltaX = float(line2Values[XAxis] - line1Values[XAxis]) #day values
@@ -114,104 +90,39 @@ def GetR0DecayValues():
         
         line1Values = line2Values
     
+    if (line2Values[XAxis] < 365):
+        print("The last line within the given decay file must have a day that is greater than or equal to 365.")
+        return None
+
     #currently is not guaranteed to place values in all 365 indexes of the array
     return arrayR0
 
-def f(seasonal_effect):
-    #default values for the model
-    Time_to_death = 25
-    logN = math.log(7e6)
-    #N = 7800000
-    #I0 = 1
-    #R0 = 2.5
-    D_incubation = 5.0
-    D_infectious = 3.0
-    D_recovery_mild = 11.0
-    D_recovery_severe = 21.0
-    #DHospitalLag = 8
-    D_death = Time_to_death - D_infectious
-    #CFR = 0.01
-    InterventionTime = 10000
-    InterventionAmt = 1 / 3
-    Time = 220
-    Xmax = 110000
-    dt = 1
-    #P_SEVERE = 0.04
-    duration = 7 * 12 * 1e10
-    seasonal_effect = 0
+def BetterCommandLineArgReader():
+    parser = argparse.ArgumentParser(description='SEIR Model For Covid 19')
+    parser.add_argument("-population", action="store", type=int, dest="N",
+                        help="The population size for the model")
+    parser.add_argument("-r0", action="store", type=float,
+                        help="The rate of transmission to be used for the ENTIRE population")
+    parser.add_argument("-i0", action="store", type=int)
+    parser.add_argument("-cfr", action="store", type=float)
+    parser.add_argument("-psevere", action="store", type=float,
+                        help="The probability that the infection is severe")
+    parser.add_argument("-hl", "--hospital_lag", action="store", type=int, 
+                        help="The hospital lag")
+    parser.add_argument("-decay", action="store", 
+                        help="Indicate path to .txt file containing age groups and R0 values")
+    return parser.parse_args()
 
-    interpolation_steps = 40
-    steps = 320 * interpolation_steps
-    dt = dt / interpolation_steps
-    sample_step = interpolation_steps
+def UpdateDefaultValues(defaultValues, arguments):
+    argumentsDict = vars(arguments)
+    for arg in argumentsDict:
+        if argumentsDict[arg] is not None:
+            defaultValues[arg] = argumentsDict[arg]
 
-    # default values for variables that can be modified with command line arguments go here
-    switcher = {
-        "N": 7800000,
-        "I0": 1,
-        "R0": 2.85,
-        "CFR": 0.01,
-        "PSEVERE": 0.04,
-        "HOSPITALLAG": 8
-    }
-
-    #begin changing variable values to the command line argument values if supplied
-    print("command line args: " + str(sys.argv))
-    for i in range(1, len(sys.argv)):
-        #require arg to have 2 leading dashes in front
-        if (sys.argv[i][0:2] == "--"):
-            argument = sys.argv[i][2:].upper()
-            if (strType(argument) != "str"):
-                print("Argument should be a string")
-                continue
-            
-            #make sure there's more command line arguments
-            if (i+1 >= len(sys.argv)):
-                print("Need more command line arguments")
-                continue
-            
-            argumentValue = sys.argv[i+1]
-            argumentValueType = strType(argumentValue)
-            if (argumentValueType != "float" and argumentValueType != "int"):
-                print(argumentValue + ": needs to be a numeric value. ", end="")
-                print("Type received: " + argumentValueType)
-                continue
-            
-            if (argumentValueType == "float"):
-                switcher[argument] = float(argumentValue)
-            else:
-                switcher[argument] = int(argumentValue)
-
-        elif (strType(sys.argv[i]) == "str"):
-            print(sys.argv[i] + ". is not a valid argument")
-    
-    N = switcher["N"]
-    I0 = switcher["I0"]
-    R0 = switcher["R0"]
-    CFR = switcher["CFR"]
-    P_SEVERE = switcher["PSEVERE"]
-    DHospitalLag = switcher["HOSPITALLAG"]
-
-    for key in switcher.keys():
-        print(key + ": " + str(switcher[key]))
-    print(switcher)
-
-    arrayOfR0s = GetR0DecayValues()
-    if (arrayOfR0s == None):
-        print("Could not run with given text file.")
-        exit()
-  
-    StartDate = datetime.datetime(2020, 1, 15)
-    def toDate(days):
-        # return new date beginning on Jan 1st 2020 + t
-        # unsure what 't' is
-        return StartDate + datetime.timedelta(days=days)
-
-
-  # f is a func of time t and state y
-  # y is the initial state, t is the time, h is the timestep
-  # updated y is returned.
-    def integrate(m, fn, y, t, h):
+# f is a func of time t and state y
+# y is the initial state, t is the time, h is the timestep
+# updated y is returned.
+def integrate(m, fn, y, t, h):
         k = []
         for ki in range(0, len(m)):
             _y = y.copy()
@@ -232,7 +143,7 @@ def f(seasonal_effect):
                 r[l] = r[l] + h * k[j][l] * m[ki][j]
         return r
 
-    Integrators = {
+Integrators = {
     "Euler": [[1]],
     "Midpoint": [
         [0.5, 0.5],
@@ -274,14 +185,61 @@ def f(seasonal_effect):
         [1, 1, -1, 1],
         [1 / 8, 3 / 8, 3 / 8, 1 / 8],
     ],
-    }
+}
 
+def f(defaultValues):
+    #default values for the model
+    Time_to_death = 25
+    #logN = math.log(7e6) not used
+    #N = 7800000
+    #I0 = 1
+    #R0 = 2.5
+    D_incubation = 5.0
+    D_infectious = 3.0
+    D_recovery_mild = 11.0
+    D_recovery_severe = 21.0
+    #DHospitalLag = 8
+    D_death = Time_to_death - D_infectious
+    #CFR = 0.01
+    InterventionTime = 10000
+    InterventionAmt = 1 / 3
+    #Time = 220 not used
+    #Xmax = 110000 not used
+    dt = 1
+    #P_SEVERE = 0.04
+    duration = 7 * 12 * 1e10
+    #seasonal_effect = 0 #not used
+
+    interpolation_steps = 40
+    steps = 320 * interpolation_steps
+    dt = dt / interpolation_steps
+    sample_step = interpolation_steps
+
+    N = defaultValues["N"]
+    I0 = defaultValues["I0"]
+    R0 = defaultValues["R0"]
+    CFR = defaultValues["CFR"]
+    P_SEVERE = defaultValues["PSEVERE"]
+    DHospitalLag = defaultValues["HOSPITALLAG"]
+    UseDecayingR0 = defaultValues["UseDecayingR0"]
+    R0FilePath = defaultValues["R0FilePath"] 
+
+    if (UseDecayingR0):
+        arrayOfR0s = GetR0DecayValues(R0FilePath)
+        if (arrayOfR0s == None):
+            exit()
+  
+    StartDate = datetime.datetime(2020, 1, 15)
     method = Integrators["RK4"]
     def f(t, x):
         nonlocal R0
-        CurrentDate = toDate(t)
-        DifferenceInDays = CurrentDate - StartDate
-        R0 = arrayOfR0s[DifferenceInDays.days]
+        nonlocal UseDecayingR0
+        nonlocal arrayOfR0s
+        if (UseDecayingR0):
+            CurrentDate = toDate(StartDate, t)
+            DifferenceInDays = CurrentDate - StartDate
+            R0 = arrayOfR0s[DifferenceInDays.days]
+
         # SEIR ODE
         if (t > InterventionTime and t < InterventionTime + duration):
             beta = (InterventionAmt * R0) / D_infectious
@@ -340,7 +298,7 @@ def f(seasonal_effect):
     while (steps):
         if ((steps + 1) % sample_step == 0):
             P.append({
-            "Time": toDate(t),
+            "Time": toDate(StartDate, t),
             "R0": R0,
             "HospitalLag": DHospitalLag,
             "Dead": N * v[9],
@@ -359,8 +317,6 @@ def f(seasonal_effect):
 
     return P
 
-data = f(0.0)
-
 def getTrace(data, name, metric):
     y = []
     x = []
@@ -376,15 +332,40 @@ def getTrace(data, name, metric):
     }
     return trace
 
-infectedPlotData = getTrace(data, "Infected, seasonal effect = 0", "Infected")
-infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"])
+def main():
+        # default values for variables that can be modified with command line arguments go here
+    defaultValues = {
+        "N": 7800000,
+        "I0": 1,
+        "R0": 2.85,
+        "CFR": 0.01,
+        "PSEVERE": 0.04,
+        "HOSPITALLAG": 8,
+        "UseDecayingR0": False,
+        "R0FilePath": None
+    }
+    args = BetterCommandLineArgReader()
+    UpdateDefaultValues(defaultValues, args)
 
-deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
-deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
+    #Will be true if the -decay flag is present with a file path
+    defaultValues["UseDecayingR0"] = args.decay is not None
+    if (defaultValues["UseDecayingR0"]):
+        defaultValues["R0FilePath"] = args.decay
 
-recoveredPlotData = getTrace(data, "Recovered Total, seasonal effect = 0", "RecoveredTotal")
-recoveredPlot = px.line(x=recoveredPlotData["x"], y=recoveredPlotData["y"], title=recoveredPlotData["name"])
+    data = f(defaultValues)
+    infectedPlotData = getTrace(data, "Infected, seasonal effect = 0", "Infected")
+    infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"])
 
-infectedPlot.show()
-#deadPlot.show()
-#recoveredPlot.show()
+    deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
+    deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
+
+    recoveredPlotData = getTrace(data, "Recovered Total, seasonal effect = 0", "RecoveredTotal")
+    recoveredPlot = px.line(x=recoveredPlotData["x"], y=recoveredPlotData["y"], title=recoveredPlotData["name"])
+
+    infectedPlot.show()
+    #deadPlot.show()
+    #recoveredPlot.show()
+
+
+if __name__ == "__main__":
+    main()
