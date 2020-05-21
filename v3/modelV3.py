@@ -191,7 +191,7 @@ def f(defaultValues):
     #default values for the model
     Time_to_death = 25
     #logN = math.log(7e6) not used
-    #N = 7800000
+    #N = 226387
     #I0 = 1
     #R0 = 2.5
     D_incubation = 5.0
@@ -335,7 +335,7 @@ def getTrace(data, name, metric):
 def main():
         # default values for variables that can be modified with command line arguments go here
     defaultValues = {
-        "N": 7800000,
+        "N": 226387,
         "I0": 1,
         "R0": 2.85,
         "CFR": 0.01,
