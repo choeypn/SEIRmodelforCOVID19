@@ -215,4 +215,5 @@ def getTrace(data, name):
 
 plotData = getTrace(f(0.0), "Infected, seasonal effect = 0")
 fig = px.line(x=plotData["x"], y=plotData["y"])
+fig.update_layout(title="TITLE", xaxis_title="x Axis Title", yaxis_title="y Axis Title")
 fig.show()
