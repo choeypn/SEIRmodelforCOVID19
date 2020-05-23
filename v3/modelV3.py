@@ -354,7 +354,7 @@ def main():
 
     data = f(defaultValues)
     infectedPlotData = getTrace(data, "Infected, seasonal effect = 0", "Infected")
-    infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"])
+    infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"], labels={'x':'Date', 'y':'Number of People'})
 
     deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
     deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
