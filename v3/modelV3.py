@@ -111,6 +111,16 @@ def BetterCommandLineArgReader():
                         help="The hospital lag")
     parser.add_argument("-decay", action="store", 
                         help="Indicate path to .txt file containing age groups and R0 values")
+    parser.add_argument("-inc", action="store", type=float, dest="DINC",
+                        help="Incubation period")
+    parser.add_argument("-inf", action="store", type=float, dest="DINF",
+                        help="Infectious period")
+    parser.add_argument("-recm", action="store", type=float, dest="RECM",
+                        help="Mild recovery period")
+    parser.add_argument("-recs", action="store", type=float, dest="RECS",
+                        help="Severe recovery period")
+    parser.add_argument("-ttd", action="store", type=int, dest="TimeTD",
+                        help="Time to death")
     return parser.parse_args()
 
 def UpdateDefaultValues(defaultValues, arguments):
@@ -189,17 +199,17 @@ Integrators = {
 
 def f(defaultValues):
     #default values for the model
-    Time_to_death = 25
+    #Time_to_death = 25
     #logN = math.log(7e6) not used
-    #N = 226387
+    #N = 7800000
     #I0 = 1
     #R0 = 2.5
-    D_incubation = 5.0
-    D_infectious = 3.0
-    D_recovery_mild = 11.0
-    D_recovery_severe = 21.0
+    #D_incubation = 5.0
+    #D_infectious = 3.0
+    #D_recovery_mild = 11.0
+    #D_recovery_severe = 21.0
     #DHospitalLag = 8
-    D_death = Time_to_death - D_infectious
+    
     #CFR = 0.01
     InterventionTime = 10000
     InterventionAmt = 1 / 3
@@ -222,8 +232,14 @@ def f(defaultValues):
     P_SEVERE = defaultValues["PSEVERE"]
     DHospitalLag = defaultValues["HOSPITALLAG"]
     UseDecayingR0 = defaultValues["UseDecayingR0"]
-    R0FilePath = defaultValues["R0FilePath"] 
-
+    R0FilePath = defaultValues["R0FilePath"]
+    D_incubation = defaultValues["DINC"]
+    D_infectious = defaultValues["DINF"]
+    D_recovery_mild = defaultValues["RECM"]
+    D_recovery_severe = defaultValues["RECS"]
+    Time_to_death = defaultValues["TimeTD"]
+    D_death = Time_to_death - D_infectious
+    
     if (UseDecayingR0):
         arrayOfR0s = GetR0DecayValues(R0FilePath)
         if (arrayOfR0s == None):
@@ -335,17 +351,23 @@ def getTrace(data, name, metric):
 def main():
         # default values for variables that can be modified with command line arguments go here
     defaultValues = {
-        "N": 226387,
+        "N": 7800000,
         "I0": 1,
         "R0": 2.85,
         "CFR": 0.01,
         "PSEVERE": 0.04,
         "HOSPITALLAG": 8,
+        "DINC": 5.0,
+        "DINF" : 3.0,
+        "RECM" : 11.0,
+        "RECS": 21.0,
+        "TimeTD" : 25, 
         "UseDecayingR0": False,
         "R0FilePath": None
     }
     args = BetterCommandLineArgReader()
     UpdateDefaultValues(defaultValues, args)
+
 
     #Will be true if the -decay flag is present with a file path
     defaultValues["UseDecayingR0"] = args.decay is not None
@@ -354,7 +376,9 @@ def main():
 
     data = f(defaultValues)
     infectedPlotData = getTrace(data, "Infected, seasonal effect = 0", "Infected")
-    infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"], labels={'x':'Date', 'y':'Number of People'})
+    infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"])
+
+    #print(infectedPlotData["x"][0], infectedPlotData["y"][0], infectedPlotData["name"])
 
     deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
     deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
