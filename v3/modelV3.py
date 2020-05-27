@@ -348,6 +348,14 @@ def getTrace(data, name, metric):
     }
     return trace
 
+def printInputTable(data,inputname):
+        name = inputname
+        print("   Date    "+name)
+        for i in range (0,10):
+               print(data[i]["Time"].strftime("%b-%d-%y")+"    "+"{:.2f}".format(data[i][name]))
+
+        pass
+
 def main():
         # default values for variables that can be modified with command line arguments go here
     defaultValues = {
@@ -378,7 +386,6 @@ def main():
     infectedPlotData = getTrace(data, "Infected, seasonal effect = 0", "Infected")
     infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"])
 
-    #print(infectedPlotData["x"][0], infectedPlotData["y"][0], infectedPlotData["name"])
 
     deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
     deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
@@ -386,7 +393,11 @@ def main():
     recoveredPlotData = getTrace(data, "Recovered Total, seasonal effect = 0", "RecoveredTotal")
     recoveredPlot = px.line(x=recoveredPlotData["x"], y=recoveredPlotData["y"], title=recoveredPlotData["name"])
 
-    infectedPlot.show()
+    printInputTable(data,"Infected")
+    #printInputTable(data,"Dead")
+    #printInputTable(data,"RecoveredTotal")
+
+    #infectedPlot.show()
     #deadPlot.show()
     #recoveredPlot.show()
 
