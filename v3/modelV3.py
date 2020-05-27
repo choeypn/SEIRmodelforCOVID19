@@ -350,10 +350,15 @@ def getTrace(data, name, metric):
 
 def printInputTable(data,inputname):
         name = inputname
+        maxval = 0.0
         print("   Date    "+name)
         for i in range (0,10):
                print(data[i]["Time"].strftime("%b-%d-%y")+"    "+"{:.2f}".format(data[i][name]))
+               if (maxval <= data[i][name]):
+                       maxval = data[i][name]
+                       date = data[i]["Time"].strftime("%b-%d-%y")
 
+        print("max value and date: ",date,"{:.2f}".format(maxval))
         pass
 
 def main():
