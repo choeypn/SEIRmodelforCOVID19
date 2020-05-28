@@ -99,6 +99,7 @@ def GetR0DecayValues(R0FilePath):
 
 def BetterCommandLineArgReader():
     parser = argparse.ArgumentParser(description='SEIR Model For Covid 19')
+    parser.add_argument("-g", action="store_true", dest="graph")  
     parser.add_argument("-population", action="store", type=int, dest="N",
                         help="The population size for the model")
     parser.add_argument("-r0", action="store", type=float,
@@ -386,23 +387,28 @@ def main():
     defaultValues["UseDecayingR0"] = args.decay is not None
     if (defaultValues["UseDecayingR0"]):
         defaultValues["R0FilePath"] = args.decay
-
+    
     data = f(defaultValues)
+    if(args["graph")
+            printGraph(data)
+    printInputTable(data,"Infected")
+
+def printGraph(data):
+
     infectedPlotData = getTrace(data, "Infected, seasonal effect = 0", "Infected")
     infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"])
 
 
-    deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
-    deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
+    #deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
+    #deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
 
-    recoveredPlotData = getTrace(data, "Recovered Total, seasonal effect = 0", "RecoveredTotal")
-    recoveredPlot = px.line(x=recoveredPlotData["x"], y=recoveredPlotData["y"], title=recoveredPlotData["name"])
+    #recoveredPlotData = getTrace(data, "Recovered Total, seasonal effect = 0", "RecoveredTotal")
+    #recoveredPlot = px.line(x=recoveredPlotData["x"], y=recoveredPlotData["y"], title=recoveredPlotData["name"])
 
-    printInputTable(data,"Infected")
     #printInputTable(data,"Dead")
     #printInputTable(data,"RecoveredTotal")
 
-    #infectedPlot.show()
+    infectedPlot.show()
     #deadPlot.show()
     #recoveredPlot.show()
 
