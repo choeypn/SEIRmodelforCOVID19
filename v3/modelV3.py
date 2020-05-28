@@ -364,7 +364,7 @@ def printInputTable(data,inputname):
 def main():
         # default values for variables that can be modified with command line arguments go here
     defaultValues = {
-        "N": 7800000,
+        "N": 226387,
         "I0": 1,
         "R0": 2.85,
         "CFR": 0.01,
