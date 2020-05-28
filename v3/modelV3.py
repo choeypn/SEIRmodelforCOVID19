@@ -102,13 +102,13 @@ def BetterCommandLineArgReader():
     parser.add_argument("-g", action="store_true", dest="graph")  
     parser.add_argument("-population", action="store", type=int, dest="N",
                         help="The population size for the model")
-    parser.add_argument("-r0", action="store", type=float,
+    parser.add_argument("-r0", action="store", type=float, dest="R0",
                         help="The rate of transmission to be used for the ENTIRE population")
-    parser.add_argument("-i0", action="store", type=int)
-    parser.add_argument("-cfr", action="store", type=float)
-    parser.add_argument("-psevere", action="store", type=float,
+    parser.add_argument("-i0", action="store", type=int, dest="I0")
+    parser.add_argument("-cfr", action="store", type=float, dest="CFR")
+    parser.add_argument("-psevere", action="store", type=float, dest="PSEVERE",
                         help="The probability that the infection is severe")
-    parser.add_argument("-hl", "--hospital_lag", action="store", type=int, 
+    parser.add_argument("-hl", "--hospital_lag", action="store", type=int, dest="HOSPITALLAG",
                         help="The hospital lag")
     parser.add_argument("-decay", action="store", 
                         help="Indicate path to .txt file containing age groups and R0 values")
@@ -394,7 +394,7 @@ def main():
     }
     args = BetterCommandLineArgReader()
     UpdateDefaultValues(defaultValues, args)
-
+    
 
     #Will be true if the -decay flag is present with a file path
     defaultValues["UseDecayingR0"] = args.decay is not None
@@ -404,7 +404,7 @@ def main():
     data = f(defaultValues)
     if(args.graph is True):
             printGraph(data)
-    printInputTable(data,"Infected")
+    printInputTable(data,"RecoveredTotal")
 
 
 if __name__ == "__main__":
