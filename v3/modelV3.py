@@ -353,7 +353,7 @@ def printInputTable(data,inputname):
         name = inputname
         maxval = 0.0
         print("   Date    "+name)
-        for i in range (0,10):
+        for i in range (0,len(data)):
                print(data[i]["Time"].strftime("%b-%d-%y")+"    "+"{:.2f}".format(data[i][name]))
                if (maxval <= data[i][name]):
                        maxval = data[i][name]
