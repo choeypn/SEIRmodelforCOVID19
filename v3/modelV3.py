@@ -361,7 +361,20 @@ def printInputTable(data,inputname):
 
         print("max value and date: ",date,"{:.2f}".format(maxval))
         pass
+def printGraph(data):
 
+    infectedPlotData = getTrace(data, "Infected, seasonal effect = 0", "Infected")
+    infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"])
+
+    #deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
+    #deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
+
+    #recoveredPlotData = getTrace(data, "Recovered Total, seasonal effect = 0", "RecoveredTotal")
+    #recoveredPlot = px.line(x=recoveredPlotData["x"], y=recoveredPlotData["y"], title=recoveredPlotData["name"])
+
+    infectedPlot.show()
+    #deadPlot.show()
+    #recoveredPlot.show()
 def main():
         # default values for variables that can be modified with command line arguments go here
     defaultValues = {
@@ -389,28 +402,9 @@ def main():
         defaultValues["R0FilePath"] = args.decay
     
     data = f(defaultValues)
-    if(args["graph")
+    if(args["graph"] is True):
             printGraph(data)
     printInputTable(data,"Infected")
-
-def printGraph(data):
-
-    infectedPlotData = getTrace(data, "Infected, seasonal effect = 0", "Infected")
-    infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"])
-
-
-    #deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
-    #deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
-
-    #recoveredPlotData = getTrace(data, "Recovered Total, seasonal effect = 0", "RecoveredTotal")
-    #recoveredPlot = px.line(x=recoveredPlotData["x"], y=recoveredPlotData["y"], title=recoveredPlotData["name"])
-
-    #printInputTable(data,"Dead")
-    #printInputTable(data,"RecoveredTotal")
-
-    infectedPlot.show()
-    #deadPlot.show()
-    #recoveredPlot.show()
 
 
 if __name__ == "__main__":
