@@ -349,17 +349,17 @@ def getTrace(data, name, metric):
     }
     return trace
 
-def printInputTable(data,inputname):
+def printInputTable(data,inputname,modvar):
         name = inputname
         maxval = 0.0
-        print("   Date    "+name)
+        #print("   Date    "+name)
         for i in range (0,len(data)):
-               print(data[i]["Time"].strftime("%b-%d-%y")+"    "+"{:.2f}".format(data[i][name]))
+               #print(data[i]["Time"].strftime("%b-%d-%y")+"    "+"{:.2f}".format(data[i][name]))
                if (maxval <= data[i][name]):
                        maxval = data[i][name]
                        date = data[i]["Time"].strftime("%b-%d-%y")
 
-        print("max value and date: ",date,"{:.2f}".format(maxval))
+        print(modvar,"{:.2f}".format(maxval))
         pass
 def printGraph(data):
 
@@ -375,6 +375,14 @@ def printGraph(data):
     infectedPlot.show()
     #deadPlot.show()
     #recoveredPlot.show()
+
+def getmodifiedVariableName(arguments):
+    argumentsDict = vars(arguments)
+    for arg in argumentsDict:
+        if argumentsDict[arg] is not None:
+            name = argumentsDict[arg]
+
+    return name
 def main():
         # default values for variables that can be modified with command line arguments go here
     defaultValues = {
@@ -394,7 +402,7 @@ def main():
     }
     args = BetterCommandLineArgReader()
     UpdateDefaultValues(defaultValues, args)
-    
+
 
     #Will be true if the -decay flag is present with a file path
     defaultValues["UseDecayingR0"] = args.decay is not None
@@ -402,9 +410,15 @@ def main():
         defaultValues["R0FilePath"] = args.decay
     
     data = f(defaultValues)
+
+    modifiedvariable = getmodifiedVariableName(args)
+
     if(args.graph is True):
             printGraph(data)
-    printInputTable(data,"RecoveredTotal")
+    if(modifiedvariable is not None):
+            printInputTable(data,"Infected",modifiedvariable)
+    else:
+            printInputTable(data,"Infected","")
 
 
 if __name__ == "__main__":
