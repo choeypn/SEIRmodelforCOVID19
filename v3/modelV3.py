@@ -402,7 +402,7 @@ def main():
         defaultValues["R0FilePath"] = args.decay
     
     data = f(defaultValues)
-    if(args["graph"] is True):
+    if(args.graph is True):
             printGraph(data)
     printInputTable(data,"Infected")
 
