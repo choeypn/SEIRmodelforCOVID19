@@ -108,7 +108,7 @@ def BetterCommandLineArgReader():
     parser.add_argument("-cfr", action="store", type=float, dest="CFR")
     parser.add_argument("-psevere", action="store", type=float, dest="PSEVERE",
                         help="The probability that the infection is severe")
-    parser.add_argument("-hl", "--hospital_lag", action="store", type=int, dest="HOSPITALLAG",
+    parser.add_argument("-hl", "--hospital_lag", action="store", type=float, dest="HOSPITALLAG",
                         help="The hospital lag")
     parser.add_argument("-decay", action="store", 
                         help="Indicate path to .txt file containing age groups and R0 values")
@@ -350,16 +350,28 @@ def getTrace(data, name, metric):
     return trace
 
 def printInputTable(data,inputname,modvar):
-        name = inputname
-        maxval = 0.0
-        #print("   Date    "+name)
+        inf = "Infected"
+        exp = "Exposed"
+        hos = "Hospital"
+        maxval  = [0.0, 0.0, 0.0, 0.0, 0.0]     #in order: max inf, max exp, max hos, total dead, total recovered 
+        maxdate = ["", "", "", ""]              #date for max val, last entry is for last day of data
         for i in range (0,len(data)):
-               #print(data[i]["Time"].strftime("%b-%d-%y")+"    "+"{:.2f}".format(data[i][name]))
-               if (maxval <= data[i][name]):
-                       maxval = data[i][name]
-                       date = data[i]["Time"].strftime("%b-%d-%y")
+                if (maxval[0] <= data[i][inf]):
+                        maxval[0] =  data[i][inf]
+                        maxdate[0] =  data[i]["Time"].strftime("%b-%d-%y")
+                if (maxval[1] <= data[i][exp]):
+                        maxval[1] =  data[i][exp]
+                        maxdate[1] =  data[i]["Time"].strftime("%b-%d-%y")
+                if (maxval[2] <= data[i][hos]):
+                        maxval[2] =  data[i][hos]
+                        maxdate[2] =  data[i]["Time"].strftime("%b-%d-%y")
+                
 
-        print(modvar,"{:.2f}".format(maxval))
+        maxval[3] = data[i-1]["Dead"]
+        maxval[4] = data[i-1]["RecoveredTotal"]
+        maxdate[3] = data[i-1]["Time"].strftime("%b-%d-%y")
+        
+        print(modvar,maxval[0],maxdate[0],maxval[1],maxdate[1],maxval[2],maxdate[2],maxval[3],maxval[4],maxdate[3])
         pass
 def printGraph(data):
 
