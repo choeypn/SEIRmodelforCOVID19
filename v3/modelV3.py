@@ -2,7 +2,6 @@
 import argparse
 import datetime
 import math
-import plotly.express as px
 import sys
 from functools import reduce
 #RT is the same as R0 (R naught)
@@ -373,20 +372,6 @@ def printInputTable(data,inputname,modvar):
         
         print(modvar,maxval[0],maxdate[0],maxval[1],maxdate[1],maxval[2],maxdate[2],maxval[3],maxval[4],maxdate[3])
         pass
-def printGraph(data):
-
-    infectedPlotData = getTrace(data, "Infected, seasonal effect = 0", "Infected")
-    infectedPlot = px.line(x=infectedPlotData["x"], y=infectedPlotData["y"], title=infectedPlotData["name"])
-
-    #deadPlotData = getTrace(data, "Dead, seasonal effect = 0", "Dead")
-    #deadPlot = px.line(x=deadPlotData["x"], y=deadPlotData["y"], title=deadPlotData["name"])
-
-    #recoveredPlotData = getTrace(data, "Recovered Total, seasonal effect = 0", "RecoveredTotal")
-    #recoveredPlot = px.line(x=recoveredPlotData["x"], y=recoveredPlotData["y"], title=recoveredPlotData["name"])
-
-    infectedPlot.show()
-    #deadPlot.show()
-    #recoveredPlot.show()
 
 def getmodifiedVariableName(arguments):
     argumentsDict = vars(arguments)
@@ -425,8 +410,6 @@ def main():
 
     modifiedvariable = getmodifiedVariableName(args)
 
-    if(args.graph is True):
-            printGraph(data)
     if(modifiedvariable is not None):
             printInputTable(data,"Infected",modifiedvariable)
     else:
