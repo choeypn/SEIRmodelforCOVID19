@@ -221,7 +221,7 @@ def f(defaultValues):
     #seasonal_effect = 0 #not used
 
     interpolation_steps = 40
-    steps = 320 * interpolation_steps
+    steps = 1462 * interpolation_steps
     dt = dt / interpolation_steps
     sample_step = interpolation_steps
 
@@ -370,7 +370,7 @@ def printInputTable(data,inputname,modvar):
         maxval[4] = data[i-1]["RecoveredTotal"]
         maxdate[3] = data[i-1]["Time"].strftime("%b-%d-%y")
         
-        print(modvar,maxval[0],maxdate[0],maxval[1],maxdate[1],maxval[2],maxdate[2],maxval[3],maxval[4],maxdate[3])
+        print(modvar,"{:.2f}".format(maxval[0]),maxdate[0],"{:.2f}".format(maxval[1]),maxdate[1],"{:.2f}".format(maxval[2]),maxdate[2],"{:.2f}".format(maxval[3]),"{:.2f}".format(maxval[4]),maxdate[3])
         pass
 
 def getmodifiedVariableName(arguments):
@@ -399,8 +399,7 @@ def main():
     }
     args = BetterCommandLineArgReader()
     UpdateDefaultValues(defaultValues, args)
-
-
+    
     #Will be true if the -decay flag is present with a file path
     defaultValues["UseDecayingR0"] = args.decay is not None
     if (defaultValues["UseDecayingR0"]):
