@@ -1,6 +1,6 @@
 # Project2-CSCI474
-*nat edited
-Research project for WWU's CSCI 474 Bioinformatics course regarding the correlation of social distancing measures, age, and health conditions on the spread and impact of the virus on a population.
+
+Research project for WWU's CSCI 474 Spring 2020 Bioinformatics course regarding the correlation of social distancing measures, age, and health conditions on the spread and impact of the virus on a population.
 
 ## Usage:
 `python3 modelV3.py`
@@ -18,3 +18,5 @@ day=int R0=float
 day=int R0=float
 ```
 note: The int given to the first day must be 0. The int given to the last day must be 365 or greater. There can be any number days and R0 values between.
+
+In collaboration with Dr.Filip Jagodzinski filip.jagodzinski@wwu.edu, Bryce Fryer https://github.com/Brystephor, Nada Boukhari https://github.com/NadaBoukhari, Noah Sinnes https://github.com/NoahSinnes 
